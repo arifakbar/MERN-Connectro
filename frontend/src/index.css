@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  outline: none;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  /* background: linear-gradient(to bottom right, blue 0%, purple 60%); */
+}
+
+.form-div {
+  @apply flex flex-col gap-2 my-4;
+}
+
+.form-input {
+  @apply border-b-2 px-2 bg-transparent;
+}
+
+.center-h1 {
+  @apply text-center mt-2 mb-5 text-2xl font-semibold md:w-96;
+}
+
+.center-form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* background: linear-gradient(to bottom right, blue 0%, purple 60%); */
+  /* color: white; */
+  transform: translate(-50%, -50%);
+}
