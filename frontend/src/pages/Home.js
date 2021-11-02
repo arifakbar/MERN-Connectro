@@ -12,18 +12,17 @@ import {
 
 function Home(props) {
   const [posts, setPosts] = useState([]);
-  const [liked, setLiked] = useState(false);
-  const [disliked, setDisliked] = useState(false);
   const [comment, setComment] = useState("");
+  const [number, setNumber] = useState(2);
   const { user } = props;
 
   useEffect(() => {
     loadPosts();
-  }, []);
+  }, [number]);
 
   const loadPosts = async () => {
     try {
-      const res = await getAllPosts();
+      const res = await getAllPosts(number);
       setPosts(res.data.data);
     } catch (err) {
       console.log(err);
@@ -31,16 +30,22 @@ function Home(props) {
     }
   };
 
+  const updateNumber = () => {
+    setNumber(number + 2);
+  };
+
+  window.onscroll = function () {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+      updateNumber();
+    }
+  };
+
   const handleLike = async (p) => {
     try {
       if (p.likes.includes(user._id)) {
         await likePost(user.token, "unlike", p._id);
-        setLiked(false);
-        setDisliked(false);
       } else {
         await likePost(user.token, "like", p._id);
-        setLiked(true);
-        setDisliked(false);
       }
       loadPosts();
     } catch (err) {
@@ -53,12 +58,8 @@ function Home(props) {
     try {
       if (p.dislikes.includes(user._id)) {
         await dislikePost(user.token, "undislike", p._id);
-        setDisliked(false);
-        setLiked(false);
       } else {
         await dislikePost(user.token, "dislike", p._id);
-        setDisliked(true);
-        setLiked(false);
       }
       loadPosts();
     } catch (err) {
@@ -84,7 +85,11 @@ function Home(props) {
       {posts.length > 0 &&
         posts.map((p) => {
           return (
-            <div className="flex flex-col md:flex-row gap-5 my-5" key={p._id}>
+            <div
+              className="flex flex-col md:flex-row gap-5 my-5 border-2 p-2 shadow-xl"
+              key={p._id}
+              style={{ color: "white" }}
+            >
               <div className="overflow-hidden w-full md:w-1/2 h-96">
                 <img
                   src={p.image}
@@ -94,7 +99,9 @@ function Home(props) {
               </div>
               <div className="flex flex-col gap-2 w-full md:w-1/2 text-left">
                 <Link to={`/user/${p.postedBy._id}`}>
-                  <h1>{p.postedBy.username.toUpperCase()}</h1>
+                  <h1 style={{ color: "gold" }}>
+                    {p.postedBy.username.toUpperCase()}
+                  </h1>
                 </Link>
                 <p>{p.title}</p>
                 <small>{p.content}</small>
@@ -102,7 +109,11 @@ function Home(props) {
                   <div className="flex gap-3">
                     <i
                       className="hover:text-red-500"
-                      style={p.likes.includes(user._id) ? { color: "red" } : {}}
+                      style={
+                        p.likes.includes(user._id)
+                          ? { color: "red" }
+                          : { color: "black" }
+                      }
                       onClick={() => handleLike(p)}
                     >
                       <svg
@@ -121,13 +132,17 @@ function Home(props) {
                         />
                       </svg>
                     </i>
-                    <small>({p.likes.length})</small>
+                    <small style={{ color: "gold" }}>
+                      ( {p.likes.length} )
+                    </small>
                   </div>
                   <div className="flex gap-3">
                     <i
                       className="hover:text-red-500"
                       style={
-                        p.dislikes.includes(user._id) ? { color: "red" } : {}
+                        p.dislikes.includes(user._id)
+                          ? { color: "red" }
+                          : { color: "black" }
                       }
                       onClick={() => handleDislike(p)}
                     >
@@ -148,17 +163,22 @@ function Home(props) {
                       </svg>
                     </i>
 
-                    <small>( {p.dislikes.length} )</small>
+                    <small style={{ color: "gold" }}>
+                      ( {p.dislikes.length} )
+                    </small>
                   </div>
                 </div>
                 <h1>Comments</h1>
-                <div className="flex flex-col justify-between border-2 border-black p-2 overflow-y-auto overflow-x-hidden h-full">
+                <div className="flex flex-col justify-between border-2 border-black  p-2 overflow-y-auto overflow-x-hidden h-full">
                   <div>
                     {p.comments.length > 0
                       ? p.comments.map((c) => {
                           return (
                             <p key={c._id}>
-                              <Link to={`/user/${p.postedBy._id}`}>
+                              <Link
+                                to={`/user/${p.postedBy._id}`}
+                                style={{ color: "gold" }}
+                              >
                                 {c.commentedBy.username}
                               </Link>{" "}
                               : {c.text}
@@ -176,10 +196,14 @@ function Home(props) {
                       placeholder="Comment here..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      className="w-full border-b-2 border-black px-2 py-1"
+                      className="w-full border-b-2  px-2 py-1 bg-transparent"
+                      style={{ borderColor: "gold" }}
                       required
                     />
-                    <button className="border-2 border-black px-2 py-1">
+                    <button
+                      className="px-3 py-1"
+                      style={{ background: "gold", color: "#091921" }}
+                    >
                       Send
                     </button>
                   </form>

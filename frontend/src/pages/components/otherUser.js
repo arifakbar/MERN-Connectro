@@ -6,12 +6,14 @@ import { Link } from "react-router-dom";
 import { getUserPosts } from "../../functions/posts";
 import { userById, follow } from "../../functions/user";
 import history from "../../history";
+import Spinner from "./Spinner";
 
 function OtherUser(props) {
   const { userId } = props.match.params;
   const [posts, setPosts] = useState("");
   const [user, setUser] = useState({});
   const [following, setFollowing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { loggedUser } = props;
 
@@ -28,16 +30,20 @@ function OtherUser(props) {
 
   const loadUserPosts = async () => {
     try {
+      setLoading(true);
       const res = await getUserPosts(userId);
       setPosts(res.data.data);
+      setLoading(false);
     } catch (err) {
       console.log(err);
+      setLoading(false);
       toast.error(err.message);
     }
   };
 
   const loadUser = async () => {
     try {
+      setLoading(true);
       const res = await userById(userId);
       setUser(res.data.data);
       if (user.followers && user.followers.includes(loggedUser._id)) {
@@ -45,14 +51,17 @@ function OtherUser(props) {
       } else {
         setFollowing(false);
       }
+      setLoading(false);
     } catch (err) {
       console.log(err);
       toast.error(err.message);
+      setLoading(false);
     }
   };
 
   const handleFollow = async () => {
     try {
+      setLoading(true);
       if (user.followers && user.followers.includes(loggedUser._id)) {
         await follow(loggedUser.token, "unfollow", user._id);
         setFollowing(false);
@@ -62,67 +71,92 @@ function OtherUser(props) {
         setFollowing(true);
         loadUser();
       }
+      setLoading(false);
     } catch (err) {
+      setLoading(false);
       console.log(err);
       toast.error(err.message);
     }
   };
 
   return (
-    <div className="p-5 flex flex-col md:flex-row justify-around gap-10 md:h-screen2 md:overflow-hidden">
-      <div className="md:w-2/5  flex items-center flex-col justify-center gap-5  md:h-screen2">
-        <div className="rounded-full h-56 w-56 flex items-center justify-center overflow-hidden">
-          <img
-            src={user.profilePic ? user.profilePic.url : check}
-            alt="NF"
-            className="h-full w-full object-cover"
-          />
+    <>
+      {loading ? (
+        <div className="center-form">
+          <Spinner />
         </div>
-        <p className="text-xl font-semibold">
-          {user.username && user.username.toUpperCase()}
-        </p>
-        <p>{posts.length} Posts</p>
-        <div className="flex gap-5">
-          <Link to={`/user/follower/${userId}`}>
-            <p className="border-2 p-2 shadow-md ">
-              {user.followers && user.followers.length} Follower's
+      ) : (
+        <div className="p-5 flex flex-col md:flex-row justify-around gap-10 md:h-screen2 md:overflow-hidden">
+          <div className="md:w-2/5  flex items-center flex-col justify-center gap-5  md:h-screen2">
+            <div className="rounded-full h-56 w-56 flex items-center justify-center overflow-hidden">
+              <img
+                src={user.profilePic ? user.profilePic.url : check}
+                alt="NF"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <p
+              className="text-xl font-semibold"
+              style={{
+                color: "gold",
+                fontFamily: "Sail",
+                letterSpacing: "1.5px",
+              }}
+            >
+              {user.username && user.username.toUpperCase()}
             </p>
-          </Link>
-          <Link to={`/user/following/${userId}`}>
-            <p className="border-2 p-2 shadow-md ">
-              {user.following && user.following.length} Following
+            <p className="text-white">{posts.length} Posts</p>
+            <div className="flex gap-5">
+              <Link to={`/user/follower/${userId}`}>
+                <p className="p-2 shadow-md " style={{ background: "gold" }}>
+                  {user.followers && user.followers.length} Follower's
+                </p>
+              </Link>
+              <Link to={`/user/following/${userId}`}>
+                <p className="p-2 shadow-md " style={{ background: "gold" }}>
+                  {user.following && user.following.length} Following
+                </p>
+              </Link>
+            </div>
+            <button
+              className="p-2 shadow-xl w-60 cursor-pointer text-white"
+              onClick={handleFollow}
+              style={
+                following ? { background: "red" } : { background: "lightblue" }
+              }
+            >
+              {following ? "Unfollow" : "Follow"}
+            </button>
+          </div>
+          <div className="md:w-3/5  flex flex-col  pt-2 gap-5 md:h-screen ">
+            <p
+              className="text-center text-2xl font-semibold"
+              style={{ fontFamily: "Sail", color: "gold" }}
+            >
+              User Posts
             </p>
-          </Link>
+            <div className="flex w-full pt-2 pb-36 shadow-md flex-wrap justify-center gap-5 md:overflow-auto">
+              {posts.length > 0
+                ? posts.map((p) => {
+                    return (
+                      <div key={p._id} className="md:w-1/4 border-2 p-2">
+                        <div className=" h-44 overflow-hidden">
+                          <img
+                            src={p.image}
+                            alt="NF"
+                            className="w-full h-full object-fill"
+                          />
+                        </div>
+                        <h3 style={{ color: "white" }}>{p.title}</h3>
+                      </div>
+                    );
+                  })
+                : "No Posts Yet"}
+            </div>
+          </div>
         </div>
-        <button
-          className="border-2 p-2 shadow-xl w-64 bg-blue-400 text-white cursor-pointer"
-          onClick={handleFollow}
-        >
-          {following ? "Unfollow" : "Follow"}
-        </button>
-      </div>
-      <div className="md:w-3/5  flex flex-col  pt-2 gap-5 md:h-screen ">
-        <p className="text-center text-xl font-semibold ">User Posts</p>
-        <div className="flex w-full pt-2 pb-36 shadow-md flex-wrap justify-center gap-5 md:overflow-auto">
-          {posts.length > 0
-            ? posts.map((p) => {
-                return (
-                  <div key={p._id} className="md:w-1/4 h-48">
-                    <div className=" h-44 overflow-hidden">
-                      <img
-                        src={p.image}
-                        alt="NF"
-                        className="w-full h-full object-fill"
-                      />
-                    </div>
-                    <h3 style={{ fontFamily: "Roboto" }}>{p.title}</h3>
-                  </div>
-                );
-              })
-            : "No Posts Yet"}
-        </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }
 

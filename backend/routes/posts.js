@@ -5,7 +5,7 @@ const { authCheck } = require("../middlewares/auth");
 
 const postsController = require("../controllers/posts");
 
-router.get("/posts", postsController.getAllPosts);
+router.get("/posts/:number", postsController.getAllPosts);
 
 router.post("/posts", [authCheck], postsController.createPost);
 

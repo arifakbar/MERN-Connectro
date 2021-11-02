@@ -11,10 +11,14 @@ import App from "./App";
 import history from "./history";
 import rootReducer from "./reducers/index";
 
-const store = createStore(
-  rootReducer,
-  compose(applyMiddleware(thunk), composeWithDevTools())
-);
+// const store = createStore(
+//   rootReducer,
+//   compose(applyMiddleware(thunk), composeWithDevTools())
+// );
+
+const middleware = applyMiddleware(thunk);
+
+const store = createStore(rootReducer, {}, composeWithDevTools(middleware));
 
 ReactDOM.render(
   <Provider store={store}>

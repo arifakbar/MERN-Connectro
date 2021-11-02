@@ -12,6 +12,8 @@ const authRoutes = require("./routes/auth");
 const postsRoutes = require("./routes/posts");
 const cloudinaryRoutes = require("./routes/cloudinary");
 const userRoutes = require("./routes/user");
+const messageRoutes = require("./routes/message");
+const conversationRoutes = require("./routes/Conversation");
 
 const app = express();
 
@@ -31,6 +33,8 @@ app.use("/api", authRoutes);
 app.use("/api", postsRoutes);
 app.use("/api", cloudinaryRoutes);
 app.use("/api", userRoutes);
+app.use("/api", messageRoutes);
+app.use("/api", conversationRoutes);
 
 app.listen(PORT, () => {
   console.log("Server running on port: ", PORT);

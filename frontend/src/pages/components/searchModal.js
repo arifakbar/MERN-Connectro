@@ -46,14 +46,23 @@ export default function SearchModal() {
         <>
           <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
             <div className="relative w-full my-6 mx-auto max-w-3xl">
-              <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-                <h1 className="pt-4 text-xl font-semibold uppercase">Search</h1>
+              <div
+                className="border-0 rounded-lg shadow-lg relative  flex flex-col w-full outline-none focus:outline-none"
+                style={{ background: "#091921" }}
+              >
+                <h1
+                  className="pt-4 text-xl font-semibold uppercase"
+                  style={{ fontFamily: "Sail" }}
+                >
+                  Search
+                </h1>
                 <form className="px-4 pt-10 pb-5 w-full">
                   <input
                     type="text"
                     className="border-b-2 w-full px-4"
                     placeholder="Enter username"
                     value={text}
+                    style={{ background: "inherit" }}
                     onChange={(e) => setText(e.target.value)}
                   />
                 </form>
@@ -67,7 +76,7 @@ export default function SearchModal() {
                           key={u._id}
                           onClick={(e) => handleClick(e, u._id)}
                         >
-                          <li className="text-left p-1 border-2 my-1">
+                          <li className="text-left py-2 px-3 border-2 my-2">
                             {u.username}
                           </li>
                         </Link>
@@ -76,7 +85,8 @@ export default function SearchModal() {
                 </div>
                 <div className="flex items-center justify-end p-2 border-t border-solid border-blueGray-200 rounded-b">
                   <button
-                    className="text-red-500 border-2 rounded-md p-2 shadow-md"
+                    className="text-black shadow-xl py-1 px-3"
+                    style={{ background: "gold" }}
                     type="button"
                     onClick={() => setShowModal(false)}
                   >

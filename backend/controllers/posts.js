@@ -2,12 +2,14 @@ const Post = require("../models/posts");
 const User = require("../models/user");
 
 exports.getAllPosts = async (req, res, next) => {
+  const { number } = req.params;
   try {
+    console.log("N ", number);
     const posts = await Post.find()
       .populate("comments.commentedBy", "_id username")
       .populate("postedBy", "_id username")
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(parseInt(number));
     res.status(200).json({
       data: posts,
       message: "Posts fetched successfully",

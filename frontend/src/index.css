@@ -11,9 +11,9 @@
 
 html,
 body {
+  font-family: "Josefin Sans, Semibold Roman";
   height: 100%;
   width: 100%;
-  /* background: linear-gradient(to bottom right, blue 0%, purple 60%); */
 }
 
 .form-div {

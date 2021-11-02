@@ -14,8 +14,8 @@ export const createPost = async (authToken, title, content, image) => {
   );
 };
 
-export const getAllPosts = async () => {
-  return await axios.get(process.env.REACT_APP_API + "posts");
+export const getAllPosts = async (number) => {
+  return await axios.get(process.env.REACT_APP_API + "posts/" + number);
 };
 
 export const getUserPosts = async (userId) => {

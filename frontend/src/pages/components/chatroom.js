@@ -5,11 +5,19 @@ import { Link } from "react-router-dom";
 
 import { userById } from "../../functions/user";
 import history from "../../history";
+import {
+  getTheirConversation,
+  newConversation,
+} from "../../functions/conversation";
+import { addMessage, getMessage } from "../../functions/messages";
 
 function ChatRoom(props) {
   const { user } = props;
   const { userId } = props.match.params;
   const [chatUser, setChatUser] = useState({});
+  const [conversation, setConversation] = useState(null);
+  const [messages, setMessages] = useState(null);
+  const [newMsg, setNewMsg] = useState("");
 
   useEffect(() => {
     if (user && user._id === userId) {
@@ -18,6 +26,35 @@ function ChatRoom(props) {
       loadUser();
     }
   }, []);
+
+  useEffect(() => {
+    loadConversation();
+  }, []);
+
+  useEffect(() => {
+    var objDiv = document.getElementById("your_div");
+    objDiv.scrollTop = objDiv.scrollHeight;
+    // document
+    //   .getElementById("your_div")
+    //   .scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages]);
+
+  const loadConversation = async () => {
+    try {
+      const res = await getTheirConversation(user.token, user._id, userId);
+      if (res.data.data === null) {
+        const res2 = await newConversation(user.token, user._id, userId);
+        setConversation(res2.data.data);
+      } else {
+        setConversation(res.data.data);
+        const res3 = await getMessage(user.token, res.data.data._id);
+        setMessages(res3.data.data);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const check =
     "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
   const loadUser = async () => {
@@ -27,6 +64,22 @@ function ChatRoom(props) {
     } catch (err) {
       console.log(err);
       toast.error(err.message);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await addMessage(
+        user.token,
+        conversation._id,
+        user._id,
+        newMsg
+      );
+      loadConversation();
+      setNewMsg("");
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -47,49 +100,76 @@ function ChatRoom(props) {
             </div>
           </Link>
           <Link to={`/user/${userId}`}>
-            <h1>{chatUser.username}</h1>
+            <h1 className="text-white text-xl capitalize">
+              {chatUser.username}
+            </h1>
           </Link>
         </div>
-        <div className="py-3 overflow-y-auto" style={{ height: "80%" }}>
-          <div className="m-2 flex items-center gap-5 p-1 bg-yellow-400">
-            <div
-              className="overflow-hidden h-8 w-8 bg-black"
-              style={{ borderRadius: "50%" }}
-            >
-              <img
-                src={!chatUser.profilePic ? check : chatUser.profilePic.url}
-                alt="NF"
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <h1 style={{ maxWidth: "50%" }}>
-              Lorem Ipsum is simply dummy text of the printing and typesetting
-              industry. Lorem Ipsum has been the industry's standard dummy text
-            </h1>
-          </div>
-          <div className="float-right m-2 flex flex-row-reverse items-center gap-5 p-1 bg-pink-500 ">
-            <div
-              className="overflow-hidden h-8 w-8 bg-black"
-              style={{ borderRadius: "50%" }}
-            >
-              <img
-                src={!user.profilePic ? check : user.profilePic.url}
-                alt="NF"
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <h1 style={{ maxWidth: "50%" }}>
-              Lorem Ipsum is simply dummy text of the printing and typesetting
-              industry. Lorem Ipsum has been the industry's standard dummy text
-              ever since the 1500s, when an unknown printer took a galley of
-              type and scrambled it to make a type specimen book. It has
-              publishing software like Aldus PageMaker including versions of
-              Lorem Ipsum.
-            </h1>
-          </div>
+        <div
+          id="your_div"
+          className="py-3 overflow-y-auto text-white"
+          style={{ height: "79%" }}
+        >
+          {messages && messages.length > 0 ? (
+            <>
+              {messages.map((m) => {
+                return (
+                  <>
+                    {m.Sender.toString() !== user._id.toString() ? (
+                      <div
+                        className="m-2 flex items-center gap-5 p-1"
+                        key={m._id}
+                      >
+                        <div
+                          className="overflow-hidden h-8 w-8 "
+                          style={{ borderRadius: "50%" }}
+                        >
+                          <img
+                            src={
+                              !chatUser.profilePic
+                                ? check
+                                : chatUser.profilePic.url
+                            }
+                            alt="NF"
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <h1 style={{ maxWidth: "50%" }}>{m.Text}</h1>
+                      </div>
+                    ) : (
+                      <div className="m-2 flex flex-row-reverse items-center gap-5 p-1">
+                        <div
+                          className="overflow-hidden h-8 w-8 bg-black"
+                          style={{ borderRadius: "50%" }}
+                        >
+                          <img
+                            src={!user.profilePic ? check : user.profilePic.url}
+                            alt="NF"
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <h1 style={{ maxWidth: "50%" }}>{m.Text}</h1>
+                      </div>
+                    )}
+                  </>
+                );
+              })}
+            </>
+          ) : (
+            <h1 className="text-center my-1">No messages</h1>
+          )}
         </div>
-        <form className="absolute bottom-0 container flex items-center gap-2 shadow-md border-t-2 p-2">
-          <input type="text" className=" border-2 p-2 w-full" />
+        <form
+          className="absolute bottom-0 container flex items-center gap-2 shadow-md border-t-2 p-2"
+          onSubmit={handleSubmit}
+        >
+          <input
+            type="text"
+            className=" border-2 p-2 w-full"
+            value={newMsg}
+            onChange={(e) => setNewMsg(e.target.value)}
+            required
+          />
           <button className="border-2 p-2 bg-green-500 text-white">Send</button>
         </form>
       </div>

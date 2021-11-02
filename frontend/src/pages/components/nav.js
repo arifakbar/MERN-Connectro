@@ -34,8 +34,8 @@ function Nav(props) {
   return (
     <>
       <div
-        className=" px-2 md:px-10 py-4 shadow-md flex justify-between"
-        // style={{ background: "#091921", color: "gold" }}
+        className=" px-2 md:px-10 py-5 shadow-md flex justify-between "
+        style={{ background: "#091921", color: "gold" }}
       >
         <Link to="/home">CONNECTRO</Link>
         <div className="md:hidden" onClick={handleNav}>
