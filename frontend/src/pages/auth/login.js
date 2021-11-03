@@ -27,6 +27,7 @@ function Login(props) {
       const res = await login(email, password);
       if (!res.data.data) {
         toast.error("Wrong credentials.");
+        setLoading(false);
       } else {
         creds = {
           _id: res.data.data._id,

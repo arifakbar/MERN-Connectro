@@ -18,3 +18,13 @@ export const getMessage = async (authToken, ConversationId) => {
     }
   );
 };
+
+export const updateMessage = async (authToken, ConversationId, Text) => {
+  return await axios.put(
+    process.env.REACT_APP_API + "message",
+    { ConversationId, Text },
+    {
+      headers: { authToken: authToken },
+    }
+  );
+};

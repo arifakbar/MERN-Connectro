@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { connect } from "react-redux";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { io } from "socket.io-client";
 
 import { userById } from "../../functions/user";
 import history from "../../history";
@@ -18,6 +19,11 @@ function ChatRoom(props) {
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState(null);
   const [newMsg, setNewMsg] = useState("");
+  const [arrivalMsg, setArrivalMsg] = useState(null);
+  const [loggedInUser, setLoggedInUser] = useState({});
+  const [isOnline, setIsOnline] = useState(false);
+
+  const socket = useRef();
 
   useEffect(() => {
     if (user && user._id === userId) {
@@ -26,6 +32,28 @@ function ChatRoom(props) {
       loadUser();
     }
   }, []);
+
+  useEffect(() => {
+    socket.current = io("ws://localhost:8900");
+    socket.current.on("getMsg", (data) => {
+      setArrivalMsg({
+        Sender: data.senderId,
+        Text: data.text,
+        createdAt: Date.now(),
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    socket.current.emit("addUser", user._id);
+    socket.current.on("getUsers", (data) => {
+      data.forEach((d) => {
+        if (d.userId === chatUser?._id) {
+          setIsOnline(true);
+        }
+      });
+    });
+  }, [user]);
 
   useEffect(() => {
     loadConversation();
@@ -57,10 +85,13 @@ function ChatRoom(props) {
 
   const check =
     "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+
   const loadUser = async () => {
     try {
       const res = await userById(userId);
       setChatUser(res.data.data);
+      const res2 = await userById(user._id);
+      setLoggedInUser(res2.data.data);
     } catch (err) {
       console.log(err);
       toast.error(err.message);
@@ -69,19 +100,25 @@ function ChatRoom(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    socket.current.emit("sendMsg", {
+      senderId: user._id,
+      receiverId: chatUser && chatUser._id,
+      text: newMsg,
+    });
     try {
-      const res = await addMessage(
-        user.token,
-        conversation._id,
-        user._id,
-        newMsg
-      );
+      await addMessage(user.token, conversation._id, user._id, newMsg);
       loadConversation();
       setNewMsg("");
     } catch (err) {
       console.log(err);
     }
   };
+
+  useEffect(() => {
+    arrivalMsg &&
+      userId === arrivalMsg.Sender &&
+      setMessages((prev) => [...prev, arrivalMsg]);
+  }, [arrivalMsg]);
 
   return (
     <div className="container-fluid w-full h-screen2 overflow-hidden p-5 flex justify-center">
@@ -103,6 +140,7 @@ function ChatRoom(props) {
             <h1 className="text-white text-xl capitalize">
               {chatUser.username}
             </h1>
+            <p className="text-sm text-white">{isOnline && "Online"}</p>
           </Link>
         </div>
         <div
@@ -114,12 +152,9 @@ function ChatRoom(props) {
             <>
               {messages.map((m) => {
                 return (
-                  <>
+                  <div key={m._id}>
                     {m.Sender.toString() !== user._id.toString() ? (
-                      <div
-                        className="m-2 flex items-center gap-5 p-1"
-                        key={m._id}
-                      >
+                      <div className="m-2 flex items-center gap-5 p-1">
                         <div
                           className="overflow-hidden h-8 w-8 "
                           style={{ borderRadius: "50%" }}
@@ -143,7 +178,11 @@ function ChatRoom(props) {
                           style={{ borderRadius: "50%" }}
                         >
                           <img
-                            src={!user.profilePic ? check : user.profilePic.url}
+                            src={
+                              !loggedInUser.profilePic
+                                ? check
+                                : loggedInUser.profilePic.url
+                            }
                             alt="NF"
                             className="object-cover w-full h-full"
                           />
@@ -151,7 +190,7 @@ function ChatRoom(props) {
                         <h1 style={{ maxWidth: "50%" }}>{m.Text}</h1>
                       </div>
                     )}
-                  </>
+                  </div>
                 );
               })}
             </>
